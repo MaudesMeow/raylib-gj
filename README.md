@@ -1,7 +1,3 @@
-# Raylib Web Demo
-
-[![the demo](https://github.com/user-attachments/assets/fd86b7f3-2b4d-423e-8e5f-ee5f8ced497d)](#raylib-web-demo)
-
 ### Prerequisites
 
 [Download WASM build of Raylib](https://github.com/raysan5/raylib/releases/download/5.0/raylib-5.0_webassembly.zip)

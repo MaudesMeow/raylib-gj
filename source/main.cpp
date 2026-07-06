@@ -1,8 +1,8 @@
 #include <raylib.h>
 #include <math.h>
 
-#define BASE_WIDTH 480
-#define BASE_HEIGHT 480
+#define BASE_WIDTH 720
+#define BASE_HEIGHT 720
 #define PROJECT_NAME "Game"
 
 #ifdef PLATFORM_WEB

@@ -1,11 +1,11 @@
 # i.e. https://itch-user.itch.io/itch-page
-ITCH_USER = wizard-jordan
-ITCH_PAGE = test
+ITCH_USER = the-bert
+ITCH_PAGE = tbd
 
 PROJECT_NAME 	= "Game"
 PROJECT_VERSION = "0.1"
-BASE_WIDTH 	=  480
-BASE_HEIGHT =  480
+BASE_WIDTH 	=  720
+BASE_HEIGHT =  720
 
 # Define PROJECT_NAME, PROJECT_VERSION, and resolution variables for use in code
 DEFINES = -DPROJECT_NAME=\"$(PROJECT_NAME)\" \
@@ -30,7 +30,15 @@ EMSDK_PATH = /home/hal9000/emsdk
 BROWSER = firefox
 
 local_build: 
-	g++ $(CFILES) -o main $(DEFINES) $(INCLUDES) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+	g++ $(CFILES) -o main $(DEFINES) $(INCLUDES) -lraylib -Linclude/local/lib/ -lGL -lm -lpthread -ldl -lrt -lX11
+
+run:
+	./main
+
+clean: 
+	rm main
+
+local: local_build run clean
 
 web_build:
 	mkdir -p build && \
