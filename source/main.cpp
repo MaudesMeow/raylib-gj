@@ -1,5 +1,7 @@
 #include "globals.hpp"
 #include "being.hpp"
+#include "input.hpp"
+#include "portals.hpp"
 
 #define BASE_WIDTH 720
 #define BASE_HEIGHT 720
@@ -14,14 +16,19 @@
 
 
 // ------------------------------------------------------variables 
-#define SCALE 3.75
-#define OFFSET 90
+
 
 static int screen_width, screen_height, screen_scale;
 static Texture2D level_1_map;
 static Camera2D camera;
 map<int, Vector2> points_on_map;
+
 Being being_instance;
+bool map_recs;
+
+
+Portal_Handler portal_handler;
+
 
 // -------------------------------------------------------functions 
 void Init(void);
@@ -29,7 +36,18 @@ void Update(void);
 void Draw(void);
 void Unload(void);
 void UpdateDrawFrame(void);
-void UserInput();
+
+void DrawMapRecs()
+{
+        for (int i = 0; i < GetScreenHeight()/16; i++)
+        {
+            for (int j =0; j < GetScreenWidth()/16; j++)
+            {
+                DrawRectangleLines(i *16,j*16,16,16,LIGHTGRAY);
+            }
+        }
+}
+
 
 
 // ---------------------------------------------------------------------------MAIN FUNCTION
@@ -43,6 +61,7 @@ int main(void)
 #else
     while (!WindowShouldClose())
     {
+        
         UpdateDrawFrame();
     }
 #endif
@@ -57,10 +76,17 @@ void Init(void)
     InitWindow(BASE_WIDTH, BASE_HEIGHT, PROJECT_NAME);
 
     SetWindowMinSize(BASE_WIDTH, BASE_HEIGHT);
+    SetTargetFPS(60);
+
+    // ------------------------------------------------------- Load Textures
     level_1_map = LoadTexture("assets/level_1.png");
 
+    // -------------------------------------------------------- Set Variables
+
+    
+    map_recs = false;
     camera = { 0 };
-    camera.target = (Vector2){ screen_width/2.0f, screen_height/2.0f  };
+    camera.target = (Vector2){ 0,0 };
     camera.offset = (Vector2){ 0,0 };
     camera.rotation = 0.0f;
     camera.zoom = 1.8;
@@ -82,6 +108,8 @@ void Init(void)
 
     };
 
+    portal_handler.PopulateLandingPoints();
+    portal_handler.PopulatePortals();
     
     being_instance = Being{points_on_map[1], true,1};
 
@@ -91,13 +119,29 @@ void Init(void)
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    UserInput();
-    being_instance.MoveBeing(points_on_map,being_instance.forward);
+    UserInput(being_instance);
+    being_instance.MoveBeing(points_on_map,portal_handler.landing_points);
+    
+    for (int i =1; i <= portal_handler.portal_points.size(); i++)
+    {
+        if (CheckCollisionRecs(portal_handler.portal_points[i],being_instance.rep))
+        {
+            cout << "colliding! " << endl;
+        }
+    }
 
+    if (IsKeyPressed(KEY_A))
+    {
+        map_recs = !map_recs;
+    }
+
+
+    
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
 void Draw(void)
 {
+
     
     ClearBackground(BLACK);
     BeginMode2D(camera);
@@ -107,7 +151,16 @@ void Draw(void)
         {
             DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
         }
+        portal_handler.DrawLandingPoints();
+        portal_handler.DrawPortals();
         being_instance.DrawBeing();
+        
+        
+        if (map_recs)
+        {
+            DrawMapRecs();
+        }
+
     EndMode2D();
 
 }
@@ -130,10 +183,3 @@ void UpdateDrawFrame(void)
     EndDrawing();
 }
 
-void UserInput()
-{
-    if (IsKeyPressed(KEY_Z))
-    {
-        being_instance.forward = !being_instance.forward;
-    }
-}
