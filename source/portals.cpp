@@ -37,6 +37,6 @@ void Portal_Handler::DrawPortals()
         // portal_points[i].x = portal_points[i].x * 16;
         // portal_points[i].y = portal_points[i].y * 16;
         DrawRectangleLines(portal_points[i].x*16,portal_points[i].y*16,32,26,WHITE);
-    }
+    };
 
 }

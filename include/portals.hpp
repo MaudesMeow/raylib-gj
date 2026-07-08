@@ -5,6 +5,12 @@
 #include "globals.hpp"
 
 
+struct portal
+{
+    /* data */
+};
+
+
 class Portal_Handler
 {
     public:

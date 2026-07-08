@@ -124,7 +124,8 @@ void Update(void)
     
     for (int i =1; i <= portal_handler.portal_points.size(); i++)
     {
-        if (CheckCollisionRecs(portal_handler.portal_points[i],being_instance.rep))
+        Rectangle temp_rec = portal_handler.portal_points[i];
+        if (CheckCollisionRecs(temp_rec,being_instance.rep))
         {
             cout << "colliding! " << endl;
         }
