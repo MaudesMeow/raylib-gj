@@ -24,7 +24,9 @@ static Camera2D camera;
 map<int, Vector2> points_on_map;
 
 Being being_instance;
+
 bool map_recs;
+Vector2 temp_landing;
 
 
 Portal_Handler portal_handler;
@@ -108,36 +110,41 @@ void Init(void)
 
     };
 
-    portal_handler.PopulateLandingPoints();
+   
     portal_handler.PopulatePortals();
     
-    being_instance = Being{points_on_map[1], true,1};
+    being_instance.PopulateBeings(points_on_map);
+    
 
-
+    temp_landing = Vector2Zero();
 
 }
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    UserInput(being_instance);
-    being_instance.MoveBeing(points_on_map,portal_handler.landing_points);
-    
-    for (int i =1; i <= portal_handler.portal_points.size(); i++)
+    for (auto& being : being_instance.beings)
     {
-        Rectangle temp_rec = portal_handler.portal_points[i];
-        if (CheckCollisionRecs(temp_rec,being_instance.rep))
+        UserInput(being);
+        being.MoveBeing(points_on_map,being.landing_point);
+        being.can_jump = false;
+
+
+        for (auto& portals : portal_handler.portals)
         {
-            cout << "colliding! " << endl;
+            if (CheckCollisionRecs(portals.second.rep,being.rep))
+            {
+                being.can_jump = true;
+                being.landing_point=portals.second.landing_point;
+
+            }
         }
+        if (IsKeyReleased(KEY_A))
+        {
+           
+            map_recs = !map_recs;
+        }
+
     }
-
-    if (IsKeyPressed(KEY_A))
-    {
-        map_recs = !map_recs;
-    }
-
-
-    
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
 void Draw(void)
@@ -155,8 +162,7 @@ void Draw(void)
         portal_handler.DrawLandingPoints();
         portal_handler.DrawPortals();
         being_instance.DrawBeing();
-        
-        
+
         if (map_recs)
         {
             DrawMapRecs();

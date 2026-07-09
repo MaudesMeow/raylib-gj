@@ -2,9 +2,19 @@
 
 
 
-
-void Being::MoveBeing(map<int, Vector2>& points_on_map,map<int, Vector2>& landing_points)
+void Being::PopulateBeings(map<int, Vector2> &points_on_map)
 {
+    beings.push_back(Being{points_on_map[1], true,1});
+    beings.push_back(Being{points_on_map[3], true,3});
+    beings.push_back(Being{points_on_map[5], true,5});
+    beings.push_back(Being{points_on_map[6], true,6});
+    beings.push_back(Being{points_on_map[11], true,11});
+    beings.push_back(Being{points_on_map[9], true,9});
+}
+
+void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
+{
+    
     if (!jumping)
     {
         Vector2 target = points_on_map[target_point];
@@ -37,7 +47,7 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map,map<int, Vector2>& landin
     }
     else if (jumping)
     {
-        Vector2 target = landing_points[1];
+        Vector2 target = landing_point;
         pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
         float distance = 1000.f;
         if (Vector2Distance(pos,target) < 0.01f)
@@ -79,6 +89,9 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map,map<int, Vector2>& landin
 }
 void Being::DrawBeing()
 {
-
-    DrawRectangleRec(rep,RED);
+    for (auto& being : beings)
+    {
+        DrawRectangleRec(being.rep,RED);
+    }
+    
 }

@@ -5,7 +5,7 @@
 
 void UserInput(Being &being_instance)
 {
-    if (IsKeyPressed(KEY_Z) and !being_instance.jumping)
+    if (IsKeyPressed(KEY_Z) )
     {
         being_instance.forward = !being_instance.forward;
         int oldTarget = being_instance.target_point;

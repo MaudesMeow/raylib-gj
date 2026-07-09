@@ -9,7 +9,9 @@ class Being
 
   public:
     
+    vector<Being> beings;
     Vector2 pos;
+    Vector2 landing_point;
 
     bool forward;
     bool jumping;
@@ -34,10 +36,11 @@ class Being
       speed = 3.5;
       jumping = false;
       can_jump = false;
+      landing_point = Vector2Zero();
     }
 
-    
-    void MoveBeing(map<int, Vector2> &points_on_map,map<int, Vector2>& landing_points);
+    void PopulateBeings(map<int, Vector2> &points_on_map);
+    void MoveBeing(map<int, Vector2> &points_on_map, Vector2 landing_point);
     void DrawBeing();
 
 
