@@ -10,6 +10,6 @@
 
 using namespace std;
 
-
+extern Texture2D red_blob;
 
 #endif

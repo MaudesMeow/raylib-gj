@@ -22,6 +22,7 @@ static int screen_width, screen_height, screen_scale;
 static Texture2D level_1_map;
 static Camera2D camera;
 map<int, Vector2> points_on_map;
+vector<Being*> beings_list;
 
 Being being_instance;
 
@@ -30,6 +31,8 @@ Vector2 temp_landing;
 
 
 Portal_Handler portal_handler;
+
+Texture2D red_blob;
 
 
 // -------------------------------------------------------functions 
@@ -82,6 +85,9 @@ void Init(void)
 
     // ------------------------------------------------------- Load Textures
     level_1_map = LoadTexture("assets/level_1.png");
+    red_blob = LoadTexture("assets/red_blob.png");
+
+
 
     // -------------------------------------------------------- Set Variables
 
@@ -114,6 +120,11 @@ void Init(void)
     portal_handler.PopulatePortals();
     
     being_instance.PopulateBeings(points_on_map);
+
+    for (auto& being: being_instance.beings)
+    {
+        being.sprite = red_blob;
+    }
     
 
     temp_landing = Vector2Zero();
@@ -122,28 +133,45 @@ void Init(void)
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
+    // Move everyone first
     for (auto& being : being_instance.beings)
     {
         UserInput(being);
-        being.MoveBeing(points_on_map,being.landing_point);
+        being.MoveBeing(points_on_map, being.landing_point);
         being.can_jump = false;
-
 
         for (auto& portals : portal_handler.portals)
         {
-            if (CheckCollisionRecs(portals.second.rep,being.rep))
+            if (CheckCollisionRecs(portals.second.rep, being.rep))
             {
                 being.can_jump = true;
-                being.landing_point=portals.second.landing_point;
-
+                being.landing_point = portals.second.landing_point;
             }
         }
-        if (IsKeyReleased(KEY_A))
-        {
-           
-            map_recs = !map_recs;
-        }
+    }
 
+
+    // Then check collisions once
+    for (int i = 0; i < being_instance.beings.size(); i++)
+    {
+        for (int j = i + 1; j < being_instance.beings.size(); j++)
+        {
+            if (CheckCollisionRecs(being_instance.beings[i].rep,being_instance.beings[j].rep))
+            {
+                if (!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
+                {
+                    MergeTwoBeings(being_instance.beings, i, j);
+                }
+                
+                return; 
+            }
+        }
+    }
+
+
+    if (IsKeyReleased(KEY_A))
+    {
+        map_recs = !map_recs;
     }
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
