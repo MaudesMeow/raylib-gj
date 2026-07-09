@@ -1,15 +1,23 @@
 #include "being.hpp"
 
-
+static const Color colors[7] = {
+    {255, 127, 127, 255}, // light red 0
+    {255, 255, 158, 255}, // light yellow 1
+    {158, 207, 255, 255}, // light blue 2
+    {207, 158, 255, 255}, // ;light purple 3
+    {158, 255, 158, 255}, // light green 4
+    {255, 207, 158, 255}, // light orange 5
+    {0, 158, 115, 255}
+};
 
 void Being::PopulateBeings(map<int, Vector2> &points_on_map)
 {
-    beings.push_back(Being{points_on_map[1], true,1,RED});
-    beings.push_back(Being{points_on_map[3], true,3,DARKBLUE});
-    beings.push_back(Being{points_on_map[5], true,5,YELLOW});
-    beings.push_back(Being{points_on_map[6], true,6,DARKBLUE});
-    beings.push_back(Being{points_on_map[11], true,11,RED});
-    beings.push_back(Being{points_on_map[9], true,9,YELLOW});
+    beings.push_back(Being{points_on_map[1], true,1,colors[0]});
+    beings.push_back(Being{points_on_map[3], true,3,colors[2]});
+    beings.push_back(Being{points_on_map[5], true,5,colors[1]});
+    beings.push_back(Being{points_on_map[6], true,6,colors[2]});
+    beings.push_back(Being{points_on_map[11], true,11,colors[0]});
+    beings.push_back(Being{points_on_map[9], true,9,colors[1]});
 }
 
 void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
@@ -84,8 +92,10 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
         pos = Vector2Zero();
     }
 
-    rep.x = (pos.x-0.5) * 16;
+    rep.x = (pos.x-0.3) * 16;
     rep.y = (pos.y-0.5) * 16;
+    sprite_pos.x = (pos.x-0.5) * 16;
+    sprite_pos.y = (pos.y-0.75) * 16;
 }
 void Being::DrawBeing()
 {
@@ -112,13 +122,15 @@ void Being::DrawBeing()
 
         Rectangle dest = 
         {
-            being.rep.x, // X position on the screen
-            being.rep.y, // Y position on the screen
+            being.sprite_pos.x, // X position on the screen
+            being.sprite_pos.y, // Y position on the screen
             (float)frameWidth , // Width of the drawn framed)
             (float)frameHeight// Height of the drawn frame (scaled)
         };
 
         DrawTexturePro(being.sprite,src,dest,{0,0},0,being.color);
+        
+        DrawRectangleLinesEx(being.rep,1,WHITE);
     }
 
 }
@@ -131,27 +143,27 @@ void MergeTwoBeings(vector<Being>& beings, int i, int j)
 
     Color temp_color;
 
-    if ((ColorIsEqual(b1.color, RED) && ColorIsEqual(b2.color, YELLOW)) ||
-        (ColorIsEqual(b1.color, YELLOW) && ColorIsEqual(b2.color, RED))
+    if ((ColorIsEqual(b1.color, colors[0]) && ColorIsEqual(b2.color, colors[1])) ||
+        (ColorIsEqual(b1.color, colors[1]) && ColorIsEqual(b2.color, colors[0]))
         )
         {
-            temp_color = ORANGE;
+            temp_color = colors[5];
         }
 
 
  
-    if ((ColorIsEqual(b1.color, DARKBLUE) && ColorIsEqual(b2.color, YELLOW)) ||
-        (ColorIsEqual(b1.color, YELLOW) && ColorIsEqual(b2.color, DARKBLUE))
+    if ((ColorIsEqual(b1.color, colors[2]) && ColorIsEqual(b2.color, colors[1])) ||
+        (ColorIsEqual(b1.color, colors[1]) && ColorIsEqual(b2.color, colors[2]))
         )
         {
-            temp_color = GREEN;
+            temp_color = colors[4];
         }
 
-    if ((ColorIsEqual(b1.color, RED) && ColorIsEqual(b2.color, DARKBLUE)) ||
-        (ColorIsEqual(b1.color, DARKBLUE) && ColorIsEqual(b2.color, RED))
+    if ((ColorIsEqual(b1.color, colors[0]) && ColorIsEqual(b2.color, colors[2])) ||
+        (ColorIsEqual(b1.color, colors[2]) && ColorIsEqual(b2.color, colors[0]))
         )
         {
-            temp_color = PURPLE;
+            temp_color = colors[3];
         }       
     Being newBeing =
     {
@@ -173,6 +185,9 @@ void MergeTwoBeings(vector<Being>& beings, int i, int j)
     newBeing.landing_point = Vector2Zero();
     newBeing.is_merged = true;
     newBeing.sprite = red_blob;
+    newBeing.rep = Rectangle{b1.pos.x*16,b1.pos.y*16,9,10};
+    newBeing.sprite_pos.x = b1.rep.x;
+    newBeing.sprite_pos.y = b1.rep.y;
 
     
     if (i > j)

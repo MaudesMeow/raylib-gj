@@ -10,6 +10,8 @@ struct Portal
     Vector2 pos;
     Rectangle rep;
     Vector2 landing_point;
+    Texture2D sprite;
+    bool active; 
 };
 
 

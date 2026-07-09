@@ -12,6 +12,7 @@ class Being
     vector<Being> beings;
     Vector2 pos;
     Vector2 landing_point;
+    Vector2 sprite_pos;
 
     bool forward;
     bool jumping;
@@ -33,17 +34,19 @@ class Being
     Being(Vector2 pos, bool forward,int location_point, Color color) 
     {
       this->pos = pos;
+      sprite_pos = pos;
       this->forward = forward;
       this->location_point = location_point;
       this->color = color;
       previous_point = location_point;
       target_point = location_point+1;
-      rep = {pos.x,pos.y,16,16};
+      rep = {pos.x,pos.y,9,10};
       speed = 3.5;
       jumping = false;
       can_jump = false;
       landing_point = Vector2Zero();
       is_merged = false;
+      
     }
 
     void PopulateBeings(map<int, Vector2> &points_on_map);

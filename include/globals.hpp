@@ -11,5 +11,5 @@
 using namespace std;
 
 extern Texture2D red_blob;
-
+extern Texture2D portal_sprite;
 #endif

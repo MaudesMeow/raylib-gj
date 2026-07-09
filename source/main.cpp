@@ -2,6 +2,7 @@
 #include "being.hpp"
 #include "input.hpp"
 #include "portals.hpp"
+#include "stars.hpp"
 
 #define BASE_WIDTH 720
 #define BASE_HEIGHT 720
@@ -33,6 +34,10 @@ Vector2 temp_landing;
 Portal_Handler portal_handler;
 
 Texture2D red_blob;
+Texture2D portal_sprite;
+
+const int starCount =  1500;
+Stars stars[starCount];
 
 
 // -------------------------------------------------------functions 
@@ -86,6 +91,7 @@ void Init(void)
     // ------------------------------------------------------- Load Textures
     level_1_map = LoadTexture("assets/level_1.png");
     red_blob = LoadTexture("assets/red_blob.png");
+    portal_sprite = LoadTexture("assets/portal.png");
 
 
 
@@ -129,11 +135,13 @@ void Init(void)
 
     temp_landing = Vector2Zero();
 
+    InitStars(stars,starCount);
+
 }
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    // Move everyone first
+    // ---------------------------------------------------------------Move everyone 
     for (auto& being : being_instance.beings)
     {
         UserInput(being);
@@ -142,23 +150,29 @@ void Update(void)
 
         for (auto& portals : portal_handler.portals)
         {
+            
             if (CheckCollisionRecs(portals.second.rep, being.rep))
             {
+                
                 being.can_jump = true;
                 being.landing_point = portals.second.landing_point;
+                
+                portals.second.active = being.jumping;
+
             }
         }
     }
 
 
-    // Then check collisions once
+    // ---------------------------------------------------------------- check collision
     for (int i = 0; i < being_instance.beings.size(); i++)
     {
         for (int j = i + 1; j < being_instance.beings.size(); j++)
         {
             if (CheckCollisionRecs(being_instance.beings[i].rep,being_instance.beings[j].rep))
             {
-                if (!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
+                if ((!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
+                    && !ColorIsEqual(being_instance.beings[i].color,being_instance.beings[j].color))
                 {
                     MergeTwoBeings(being_instance.beings, i, j);
                 }
@@ -173,15 +187,16 @@ void Update(void)
     {
         map_recs = !map_recs;
     }
+    UpdateStars(stars,starCount);
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
 void Draw(void)
 {
 
     
-    ClearBackground(BLACK);
+    ClearBackground(Color{28,27,51});
     BeginMode2D(camera);
-
+        DrawStars(stars,starCount);
         DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
         for (auto& point : points_on_map)
         {
@@ -195,7 +210,7 @@ void Draw(void)
         {
             DrawMapRecs();
         }
-
+        
     EndMode2D();
 
 }
