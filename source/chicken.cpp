@@ -20,16 +20,34 @@ void Chicken::PopulateChickens(map<int, Vector2>& points_on_map)
         if (!chickens[i].active)
         {
             chickens.erase(chickens.begin() + i);
-            cout << " removed a chicken " << endl;
+            
         }
     }
 
-    if (chickens.size() > 2)
+    if (chickens.size() > 4)
         return;
 
-    int ran1 = GetRandomValue(0,6);
+    int ran1  = GetRandomValue(0, 6);;
+    bool exists;
+
 
     int temp_val = starting_vals[ran1];
+
+    do
+    {
+        ran1 = GetRandomValue(0, 6);
+        temp_val = starting_vals[ran1];
+        exists = false;
+        for (const auto& chicken : chickens)
+        {
+            if (chicken.location_point == temp_val)
+            {
+                exists = true;
+                break;
+            }
+        }
+
+    } while (exists);
     int temp_start_x_offset = 0;
     int temp_end_x_offset = 0;
     int temp_start_y_offset = 0;
@@ -172,66 +190,9 @@ void Chicken::DrawChickens()
             DrawTexturePro(chicken.sprite,src,dest,{0,0},0,WHITE);
         }
         
-       DrawRectangleLinesEx(chicken.rep,1,RED);
+    //    DrawRectangleLinesEx(chicken.rep,1,RED);
         
        
     }
 }
 
-// void AddAndRemoveChicken(map<int, Vector2> &points_on_map,vector<Chicken> &chickens)
-// {
-
-//     int ran1 = GetRandomValue(0,6);
-//     int temp_val = starting_vals[ran1];
-//     int temp_start_x_offset=0;
-//     int temp_end_x_offset=0;
-//     int temp_end_y_offset = 0;
-//     int temp_direction = 1;
-
-//     if (temp_val ==1 ||temp_val ==5 || temp_val == 9 )
-//     {
-//         temp_start_x_offset = -15;
-//         temp_end_x_offset = 30;
-//         temp_direction =-1;
-//     }
-//     else if (temp_val ==3 ||temp_val == 7 || temp_val == 11 )
-//     {
-//         temp_start_x_offset = 20;
-//         temp_end_x_offset = -15;
-//         temp_direction = 1;
-//     }
-
-//     else if(temp_val == 10)
-//     {
-//         temp_start_x_offset = 0;
-//         temp_end_x_offset = 0;
-//         temp_end_y_offset = -10;
-//         temp_direction = 1;
-//     }
-
-
-    
-    
-//     for (int i = chickens.size() - 1; i >= 0; --i)
-//     {
-//         if (!chickens[i].active)
-//         {
-//             chickens.erase(chickens.begin() + i);
-//         }
-//     }
-//     if (chickens.size() <1)
-//     {
-//         Chicken temp_chicken = Chicken{Vector2{points_on_map[temp_val].x+temp_start_x_offset,points_on_map[temp_val].y},temp_val,3};
-//         temp_chicken.sprite = chicken_sprite;
-//         temp_chicken.direction = temp_direction;
-//         temp_chicken.end_x_offset = temp_end_x_offset;
-//         temp_chicken.end_y_offset = temp_end_y_offset;
-
-//         temp_chicken.rep.x = (temp_chicken.pos.x-0.3) * 16;
-//         temp_chicken.rep.y = (temp_chicken.pos.y-0.3) * 16;
-//         temp_chicken.sprite_pos.x = (temp_chicken.pos.x-0.5) * 16;
-//         temp_chicken.sprite_pos.y = (temp_chicken.pos.y-0.75) * 16;
-//         chickens.push_back(temp_chicken);
-
-//     }
-// }

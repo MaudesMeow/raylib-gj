@@ -26,7 +26,7 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
     {
         Vector2 target = points_on_map[target_point];
 
-        MoveOrthogonal(target, GetFrameTime() * speed);
+        MoveOrthogonal(pos,target, GetFrameTime() * speed,direction);
 
         if (Vector2Distance(pos, target) < 0.01f)
         {
@@ -34,12 +34,17 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
             previous_point = location_point;
             location_point = target_point;
 
-            if (location_point == 13)
+            if (location_point == 13 && is_merged)
             {
                 
                 is_active = false;
                 
             }
+            else if(location_point == 13 && !is_merged)
+            {
+                target_point = 10;
+            }
+
 
             // Pick the next target
             if (forward)
@@ -58,6 +63,10 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
             }
             else
             {
+                if (is_merged && location_point == 10)
+                {
+                    target_point = 13;
+                }
                 target_point--;
 
                 if (target_point < 1)
@@ -274,9 +283,20 @@ void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
 
     newBeing.pos.x = (merged_being.pos.x);
     newBeing.pos.y = (merged_being.pos.y);
-
+    if (merged_being.target_point == 13 && merged_being.forward)
+    {
+        newBeing.target_point = 10;
+    }
+    else if (merged_being.target_point == 13 && !merged_being.forward)
+    {
+        newBeing.target_point = 9;
+    }
+    else
+    {
+        newBeing.target_point = 10;
+    }
     
-    newBeing.target_point = merged_being.target_point;
+    
     newBeing.speed = 3.5;
     newBeing.jumping = false;
     newBeing.can_jump = false;
@@ -284,9 +304,9 @@ void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
     newBeing.landing_point = Vector2Zero();
     newBeing.is_merged = false;
     newBeing.sprite = red_blob;
-    newBeing.rep = Rectangle{merged_being.pos.x*16,merged_being.pos.y*16,9,10};
-    newBeing.sprite_pos.x = merged_being.rep.x;
-    newBeing.sprite_pos.y = merged_being.rep.y;   
+    newBeing.rep = Rectangle{newBeing.pos.x*16,newBeing.pos.y*16,9,10};
+    newBeing.sprite_pos.x = newBeing.rep.x;
+    newBeing.sprite_pos.y = newBeing.rep.y;   
     
 
     int temp_y =0;
@@ -319,8 +339,19 @@ void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
     newBeing2.pos.x = (merged_being.pos.x+temp_x);
     newBeing2.pos.y = (merged_being.pos.y+temp_y);
 
-    
-    newBeing2.target_point = merged_being.target_point;
+    if (merged_being.target_point == 13 && merged_being.forward)
+    {
+        newBeing2.target_point = 10;
+    }
+    else if (merged_being.target_point == 13 && !merged_being.forward)
+    {
+        newBeing2.target_point = 9;
+    }
+    else
+    {
+        newBeing2.target_point = 10;
+    }
+
     newBeing2.speed = 3.5;
     newBeing2.jumping = false;
     newBeing2.can_jump = false;
@@ -328,9 +359,9 @@ void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
     newBeing2.is_merged = false;
     newBeing.is_active = true;
     newBeing2.sprite = red_blob;
-    newBeing2.rep = Rectangle{merged_being.pos.x*16,merged_being.pos.y*16,9,10};
-    newBeing2.sprite_pos.x = merged_being.rep.x;
-    newBeing2.sprite_pos.y = merged_being.rep.y;
+    newBeing2.rep = Rectangle{newBeing2.pos.x*16,newBeing2.pos.y*16,9,10};
+    newBeing2.sprite_pos.x = newBeing2.rep.x;
+    newBeing2.sprite_pos.y = newBeing2.rep.y;
 
     beings.push_back(newBeing);
     beings.push_back(newBeing2);
@@ -339,7 +370,7 @@ void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
 }
 
 
-void Being::MoveOrthogonal(const Vector2 &target, float step)
+void MoveOrthogonal(Vector2 &pos,const Vector2 &target, float step, int &direction)
 {
     if (fabsf(pos.x - target.x) > 0.01f)
     {

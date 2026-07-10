@@ -188,11 +188,14 @@ void Update(void)
 
         for (auto& chicken : chicken_instance.chickens)
         {
-            if (CheckCollisionRecs(chicken.rep,being.rep) && being.is_merged && being.is_active && !being.jumping)
+            if (CheckCollisionRecs(chicken.rep,being.rep) && 
+            (!chicken.flying_in && !chicken.flying_out) &&
+            being.is_merged && being.is_active && 
+            !being.jumping)
             {
-                cout << " they have collided " << endl;
+                
                 SplitTwoBeings(being_instance.beings,being);
-                return;
+                break;
             }
         }
     }
@@ -207,7 +210,8 @@ void Update(void)
             if (CheckCollisionRecs(being_instance.beings[i].rep,being_instance.beings[j].rep))
             {
                 if ((!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
-                    && !ColorIsEqual(being_instance.beings[i].color,being_instance.beings[j].color))
+                    && !ColorIsEqual(being_instance.beings[i].color,being_instance.beings[j].color)
+                    && (!being_instance.beings[i].jumping && !being_instance.beings[j].jumping))
                 {
                     MergeTwoBeings(being_instance.beings, i, j);
                 }
@@ -235,11 +239,11 @@ void Draw(void)
     BeginMode2D(camera);
         DrawStars(stars,starCount);
         DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
-        for (auto& point : points_on_map)
-        {
-            DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
-        }
-        portal_handler.DrawLandingPoints();
+        // for (auto& point : points_on_map)
+        // {
+        //     DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
+        // }
+        // portal_handler.DrawLandingPoints();
         portal_handler.DrawPortals();
         being_instance.DrawBeing();
         chicken_instance.DrawChickens();

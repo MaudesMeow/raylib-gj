@@ -32,28 +32,36 @@ class Being
     Color color;
 
     Being() : pos{0,0} {};
-    Being(Vector2 pos, bool forward,int location_point, Color color) 
+    Being(Vector2 pos, bool forward, int location_point, Color color) 
     {
       this->pos = pos;
-      sprite_pos = pos;
+      this->sprite_pos = pos;
+
       this->forward = forward;
       this->location_point = location_point;
       this->color = color;
+
       previous_point = location_point;
-      target_point = location_point+1;
-      rep = {pos.x,pos.y,9,10};
+      target_point = location_point + 1;
+
+      rep = {pos.x * 16, pos.y * 16, 9, 10};
+
       speed = 3.5;
       jumping = false;
       can_jump = false;
       landing_point = Vector2Zero();
+
       is_merged = false;
       is_active = true;
+
       direction = 0;
+
+      sprite = red_blob;
     }
 
     void PopulateBeings(map<int, Vector2> &points_on_map);
     void MoveBeing(map<int, Vector2> &points_on_map, Vector2 landing_point);
-    void MoveOrthogonal(const Vector2& target, float step);
+  
     void DrawBeing();
     
 
@@ -63,7 +71,7 @@ class Being
 
 void MergeTwoBeings(vector<Being> &beings, int i, int j);
 void SplitTwoBeings(vector<Being> &beings, Being &merged_being);
-
+void MoveOrthogonal(Vector2 &pos,const Vector2 &target, float step, int &direction);
 void DeleteBeing(vector<Being> &beings);
 
 
