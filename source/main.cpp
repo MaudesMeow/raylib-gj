@@ -25,6 +25,7 @@ static Texture2D level_1_map;
 static Camera2D camera;
 map<int, Vector2> points_on_map;
 vector<Being*> beings_list;
+Color portal_color;
 
 Being being_instance;
 Chicken chicken_instance;
@@ -39,9 +40,12 @@ Texture2D red_blob;
 Texture2D portal_sprite;
 Texture2D chicken_sprite;
 Texture2D flying_chicken_sprite;
+Texture2D exit_portals;
 
 const int starCount =  1500;
 Stars stars[starCount];
+
+
 
 
 
@@ -51,6 +55,8 @@ void Update(void);
 void Draw(void);
 void Unload(void);
 void UpdateDrawFrame(void);
+
+void DrawExitPortals();
 
 void DrawMapRecs()
 {
@@ -99,6 +105,7 @@ void Init(void)
     portal_sprite = LoadTexture("assets/portal.png");
     chicken_sprite = LoadTexture("assets/chicken.png");
     flying_chicken_sprite = LoadTexture("assets/flying_chicken.png");
+    exit_portals = LoadTexture("assets/portal_exit.png");
 
 
 
@@ -186,16 +193,21 @@ void Update(void)
 
         }
 
-        for (auto& chicken : chicken_instance.chickens)
+        for (int i = 0; i < being_instance.beings.size(); i++)
         {
-            if (CheckCollisionRecs(chicken.rep,being.rep) && 
-            (!chicken.flying_in && !chicken.flying_out) &&
-            being.is_merged && being.is_active && 
-            !being.jumping)
+            Being& being = being_instance.beings[i];
+
+            for (auto& chicken : chicken_instance.chickens)
             {
-                
-                SplitTwoBeings(being_instance.beings,being);
-                break;
+                if (CheckCollisionRecs(chicken.rep, being.rep) &&
+                    (!chicken.flying_in && !chicken.flying_out) &&
+                    being.is_merged &&
+                    being.is_active &&
+                    !being.jumping)
+                {
+                    SplitTwoBeings(points_on_map, being_instance.beings, i);
+                    break;
+                }
             }
         }
     }
@@ -214,6 +226,7 @@ void Update(void)
                     && (!being_instance.beings[i].jumping && !being_instance.beings[j].jumping))
                 {
                     MergeTwoBeings(being_instance.beings, i, j);
+                    
                 }
                 
                 return; 
@@ -252,6 +265,7 @@ void Draw(void)
         {
             DrawMapRecs();
         }
+        DrawExitPortals();
         
     EndMode2D();
 
@@ -275,3 +289,54 @@ void UpdateDrawFrame(void)
     EndDrawing();
 }
 
+
+void DrawExitPortals()
+{
+
+    // DrawTextureEx(being.sprite,Vector2{being.rep.x,being.rep.y},0,1,being.color);
+    // DrawRectangleRec(being.rep,being.color);
+
+
+
+    int numFrames =3;
+    int frameWidth = exit_portals.width / numFrames; // Width of a single frame
+    int frameHeight = exit_portals.height; // Assuming all frames have the same height
+    float frameTime = 0.3f; // Time per frame in seconds 
+    int currentFrame = static_cast<int>(GetTime() / frameTime) % numFrames;
+
+    Rectangle src = 
+    {
+        (float)(frameWidth * currentFrame), // X position of the current frame
+        0, // Y position of the current frame (assuming a single row of frames)
+        (float)frameWidth, // Width of the current frame
+        (float)frameHeight // Height of the current frame  
+    } ;
+    Rectangle src2 = 
+    {
+        (float)(frameWidth * currentFrame), // X position of the current frame
+        0, // Y position of the current frame (assuming a single row of frames)
+        (float)-frameWidth, // Width of the current frame
+        (float)frameHeight // Height of the current frame  
+    } ;
+    Rectangle dest = 
+    {
+        160, // X position on the screen
+        368, // Y position on the screen
+        (float)frameWidth , // Width of the drawn framed)
+        (float)frameHeight// Height of the drawn frame (scaled)
+    };
+        Rectangle dest2 = 
+    {
+        160, // X position on the screen
+        380, // Y position on the screen
+        (float)frameWidth , // Width of the drawn framed)
+        (float)frameHeight// Height of the drawn frame (scaled)
+    };
+
+    DrawTexturePro(exit_portals,src,dest,{0,0},0, portal_color);
+    DrawTexturePro(exit_portals,src2,dest2,{0,0},0, portal_color);
+    
+       
+    
+
+}

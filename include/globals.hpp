@@ -14,4 +14,10 @@ extern Texture2D red_blob;
 extern Texture2D portal_sprite;
 extern Texture2D chicken_sprite;
 extern Texture2D flying_chicken_sprite;
+extern Texture2D exit_portals;
+
+extern Color portal_color;
+
+
+
 #endif

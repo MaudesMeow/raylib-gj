@@ -70,7 +70,7 @@ class Being
 
 
 void MergeTwoBeings(vector<Being> &beings, int i, int j);
-void SplitTwoBeings(vector<Being> &beings, Being &merged_being);
+void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int merged_index);
 void MoveOrthogonal(Vector2 &pos,const Vector2 &target, float step, int &direction);
 void DeleteBeing(vector<Being> &beings);
 
