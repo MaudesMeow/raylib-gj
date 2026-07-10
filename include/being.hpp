@@ -18,6 +18,7 @@ class Being
     bool jumping;
     bool can_jump;
     bool is_merged;
+    bool is_active;
 
     
 
@@ -25,7 +26,7 @@ class Being
     int location_point;
     int target_point;
     int previous_point;
-
+    int direction;
     Texture2D sprite;
     Rectangle rep;
     Color color;
@@ -46,19 +47,24 @@ class Being
       can_jump = false;
       landing_point = Vector2Zero();
       is_merged = false;
-      
+      is_active = true;
+      direction = 0;
     }
 
     void PopulateBeings(map<int, Vector2> &points_on_map);
     void MoveBeing(map<int, Vector2> &points_on_map, Vector2 landing_point);
+    void MoveOrthogonal(const Vector2& target, float step);
     void DrawBeing();
+    
 
 
 };
 
 
-void MergeTwoBeings(vector<Being>& beings, int i, int j);
+void MergeTwoBeings(vector<Being> &beings, int i, int j);
+void SplitTwoBeings(vector<Being> &beings, Being &merged_being);
 
+void DeleteBeing(vector<Being> &beings);
 
 
 #endif

@@ -23,19 +23,23 @@ class Chicken
     int location_point;
     int target_point;
     int previous_point;
+    int timer;
+    int end_x_offset;
+    int end_y_offset;
+    int direction;
 
     Texture2D sprite;
     Rectangle rep;
-    Color color;
+    
 
     Chicken() : pos{0,0} {};
-    Chicken(Vector2 pos, int location_point, Color color) 
+    Chicken(Vector2 pos, int location_point,int timer) 
     {
         this->pos = pos;
         sprite_pos = pos;
-     
+        this->timer = timer;
         this->location_point = location_point;
-        this->color = color;
+        
         previous_point = location_point;
         target_point = location_point+1;
         rep = {pos.x,pos.y,9,10};
@@ -54,8 +58,9 @@ class Chicken
     void DrawChickens();
 
 
+
 };
 
-
+    void AddAndRemoveChicken(map<int, Vector2> &points_on_map,vector<Chicken> &chickens);
 
 #endif

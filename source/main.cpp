@@ -124,7 +124,8 @@ void Init(void)
         {9,{2,22}},
         {10,{22,22}},
         {11,{22,2}},
-        {12,{2,2}}
+        {12,{2,2}},
+        {13,{11,24}}
 
 
     };
@@ -133,7 +134,11 @@ void Init(void)
     portal_handler.PopulatePortals();
     
     being_instance.PopulateBeings(points_on_map);
-    chicken_instance.PopulateChickens(points_on_map);
+    for (int i = 0; i < 3; i++)
+    {
+        chicken_instance.PopulateChickens(points_on_map);
+    }
+    
 
     for (auto& being: being_instance.beings)
     {
@@ -157,12 +162,13 @@ void Update(void)
     {
         chicken.MoveChickens(points_on_map,chicken.landing_point);
     }
-
+    chicken_instance.PopulateChickens(points_on_map);
     // ---------------------------------------------------------------Move everyone in beings
     for (auto& being : being_instance.beings)
     {
         UserInput(being);
         being.MoveBeing(points_on_map, being.landing_point);
+        
         being.can_jump = false;
 
         for (auto& portals : portal_handler.portals)
@@ -177,8 +183,20 @@ void Update(void)
                 portals.second.active = being.jumping;
 
             }
+
+        }
+
+        for (auto& chicken : chicken_instance.chickens)
+        {
+            if (CheckCollisionRecs(chicken.rep,being.rep) && being.is_merged && being.is_active && !being.jumping)
+            {
+                cout << " they have collided " << endl;
+                SplitTwoBeings(being_instance.beings,being);
+                return;
+            }
         }
     }
+    DeleteBeing(being_instance.beings);
 
 
     // ---------------------------------------------------------------- check collision
@@ -196,6 +214,8 @@ void Update(void)
                 
                 return; 
             }
+
+
         }
     }
 
@@ -215,11 +235,11 @@ void Draw(void)
     BeginMode2D(camera);
         DrawStars(stars,starCount);
         DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
-        // for (auto& point : points_on_map)
-        // {
-        //     DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
-        // }
-        // portal_handler.DrawLandingPoints();
+        for (auto& point : points_on_map)
+        {
+            DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
+        }
+        portal_handler.DrawLandingPoints();
         portal_handler.DrawPortals();
         being_instance.DrawBeing();
         chicken_instance.DrawChickens();

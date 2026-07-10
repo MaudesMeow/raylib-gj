@@ -22,26 +22,39 @@ void Being::PopulateBeings(map<int, Vector2> &points_on_map)
 
 void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
 {
-    
     if (!jumping)
     {
         Vector2 target = points_on_map[target_point];
 
-        pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
+        MoveOrthogonal(target, GetFrameTime() * speed);
 
         if (Vector2Distance(pos, target) < 0.01f)
         {
-            // ----------------------------------------------------------------We reached the target
+            // We reached the target
             previous_point = location_point;
             location_point = target_point;
 
-            // ----------------------------------------------------- Pick the next target
+            if (location_point == 13)
+            {
+                
+                is_active = false;
+                
+            }
+
+            // Pick the next target
             if (forward)
             {
-                target_point++;
+                if (is_merged && location_point == 9)
+                {
+                    target_point = 13;
+                }
+                else
+                {
+                    target_point++;
 
-                if (target_point > 12)
-                    target_point = 1;
+                    if (target_point > 12)
+                        target_point = 1;
+                }
             }
             else
             {
@@ -51,51 +64,60 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
                     target_point = 12;
             }
         }
-
     }
-    else if (jumping)
+    else
     {
-        Vector2 target = landing_point;
-        pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
-        float distance = 1000.f;
-        if (Vector2Distance(pos,target) < 0.01f)
+        // Moving after jump
+        pos = Vector2MoveTowards(pos, landing_point, GetFrameTime() * speed);
+
+        if (Vector2Distance(pos, landing_point) < 0.01f)
         {
-            
-            for (int i =1; i < points_on_map.size(); i ++)
+            // Find the closest point on the map
+            float distance = 1000.f;
+            int closest_point = location_point;
+
+            for (int i = 1; i < points_on_map.size(); i++)
             {
-                if (Vector2Distance(pos,points_on_map[i]) < distance)
+                float current_distance = Vector2Distance(pos, points_on_map[i]);
+
+                if (current_distance < distance)
                 {
-                    distance = Vector2Distance(pos,points_on_map[i]);
-                    if (forward)
-                    {
-                        target_point = i+1;
-                        location_point = i;
-                    }
-                    else
-                    {
-                        target_point = i;
-                        location_point = i+1;
-                    }
- 
+                    distance = current_distance;
+                    closest_point = i;
                 }
-                cout << " count is : " << i << endl;
             }
-            cout << "target point is " << target_point << endl;
-            cout << "location point is " << location_point << endl;
+
+            previous_point = location_point;
+            location_point = closest_point;
+
+            // Pick the next target based on direction
+            if (forward)
+            {
+                target_point = location_point + 1;
+
+                if (target_point > 12)
+                    target_point = 1;
+            }
+            else
+            {
+                target_point = location_point - 1;
+
+                if (target_point < 1)
+                    target_point = 12;
+            }
+
+
+
             jumping = false;
             can_jump = true;
         }
-        
-    }
-    else 
-    {
-        pos = Vector2Zero();
     }
 
-    rep.x = (pos.x-0.3) * 16;
-    rep.y = (pos.y-0.5) * 16;
-    sprite_pos.x = (pos.x-0.5) * 16;
-    sprite_pos.y = (pos.y-0.75) * 16;
+
+    rep.x = (pos.x - 0.3f) * 16;
+    rep.y = (pos.y - 0.5f) * 16;
+    sprite_pos.x = (pos.x - 0.5f) * 16;
+    sprite_pos.y = (pos.y - 0.75f) * 16;
 }
 void Being::DrawBeing()
 {
@@ -134,9 +156,24 @@ void Being::DrawBeing()
     }
 
 }
+void DeleteBeing(vector<Being> &beings)
+{
+    
+
+    for (int i = beings.size() - 1; i >= 0; i--)
+    {
+        
+
+        if (!beings[i].is_active)
+        {
+            
+            beings.erase(beings.begin() + i);
+        }
+    }
+}
 
 
-void MergeTwoBeings(vector<Being>& beings, int i, int j)
+void MergeTwoBeings(vector<Being> &beings, int i, int j)
 {
     Being& b1 = beings[i];
     Being& b2 = beings[j];
@@ -198,4 +235,142 @@ void MergeTwoBeings(vector<Being>& beings, int i, int j)
 
     
     beings.push_back(newBeing);
+}
+
+void SplitTwoBeings(vector<Being> &beings, Being &merged_being)
+{
+
+    
+
+    Color temp_color_1 = RED;
+    Color temp_color_2 = YELLOW;
+
+    if (ColorIsEqual(merged_being.color,colors[5]))
+    {
+        temp_color_1 = colors[0];
+        temp_color_2 = colors[1];
+    } 
+    else if (ColorIsEqual(merged_being.color,colors[4]))
+    {
+        temp_color_1 = colors[2];
+        temp_color_2 = colors[1];
+    } 
+    else if (ColorIsEqual(merged_being.color,colors[3]))
+    {
+        temp_color_1 = colors[0];
+        temp_color_2 = colors[2];
+    } 
+
+
+
+    merged_being.is_active = false;
+     Being newBeing =
+    {
+        merged_being.pos,
+        merged_being.forward,
+        merged_being.location_point,
+        temp_color_1
+    };
+
+    newBeing.pos.x = (merged_being.pos.x);
+    newBeing.pos.y = (merged_being.pos.y);
+
+    
+    newBeing.target_point = merged_being.target_point;
+    newBeing.speed = 3.5;
+    newBeing.jumping = false;
+    newBeing.can_jump = false;
+
+    newBeing.landing_point = Vector2Zero();
+    newBeing.is_merged = false;
+    newBeing.sprite = red_blob;
+    newBeing.rep = Rectangle{merged_being.pos.x*16,merged_being.pos.y*16,9,10};
+    newBeing.sprite_pos.x = merged_being.rep.x;
+    newBeing.sprite_pos.y = merged_being.rep.y;   
+    
+
+    int temp_y =0;
+    int temp_x = 0;
+
+    if (merged_being.direction == 0)
+    {
+        temp_y = -3;
+    }
+    else if(merged_being.direction ==1)
+    {
+        temp_x = 3;
+    }
+    else if(merged_being.direction == 2)
+    {
+        temp_y = 3;
+    }
+    else
+    {
+        temp_x = -3;
+    }
+    Being newBeing2 =
+    {
+        merged_being.pos,
+        merged_being.forward,
+        merged_being.location_point,
+        temp_color_2
+    };
+
+    newBeing2.pos.x = (merged_being.pos.x+temp_x);
+    newBeing2.pos.y = (merged_being.pos.y+temp_y);
+
+    
+    newBeing2.target_point = merged_being.target_point;
+    newBeing2.speed = 3.5;
+    newBeing2.jumping = false;
+    newBeing2.can_jump = false;
+    newBeing2.landing_point = Vector2Zero();
+    newBeing2.is_merged = false;
+    newBeing.is_active = true;
+    newBeing2.sprite = red_blob;
+    newBeing2.rep = Rectangle{merged_being.pos.x*16,merged_being.pos.y*16,9,10};
+    newBeing2.sprite_pos.x = merged_being.rep.x;
+    newBeing2.sprite_pos.y = merged_being.rep.y;
+
+    beings.push_back(newBeing);
+    beings.push_back(newBeing2);
+
+
+}
+
+
+void Being::MoveOrthogonal(const Vector2 &target, float step)
+{
+    if (fabsf(pos.x - target.x) > 0.01f)
+    {
+        if (pos.x < target.x)
+        {
+            pos.x = min(pos.x + step, target.x);
+            direction = 3;
+        }
+
+        else
+        {
+            pos.x = max(pos.x - step, target.x);
+            direction = 1;
+        }
+            
+        
+        
+    }
+    else if (fabsf(pos.y - target.y) > 0.01f)
+    {
+        if (pos.y < target.y)
+        {
+            pos.y = min(pos.y + step, target.y);
+            direction =2;
+        }
+            
+        else
+        {
+            pos.y = max(pos.y - step, target.y);
+            direction = 0;
+        }
+            
+    }
 }
