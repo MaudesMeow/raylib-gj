@@ -3,6 +3,7 @@
 #include "input.hpp"
 #include "portals.hpp"
 #include "stars.hpp"
+#include "chicken.hpp"
 
 #define BASE_WIDTH 720
 #define BASE_HEIGHT 720
@@ -26,6 +27,7 @@ map<int, Vector2> points_on_map;
 vector<Being*> beings_list;
 
 Being being_instance;
+Chicken chicken_instance;
 
 bool map_recs;
 Vector2 temp_landing;
@@ -35,9 +37,12 @@ Portal_Handler portal_handler;
 
 Texture2D red_blob;
 Texture2D portal_sprite;
+Texture2D chicken_sprite;
+Texture2D flying_chicken_sprite;
 
 const int starCount =  1500;
 Stars stars[starCount];
+
 
 
 // -------------------------------------------------------functions 
@@ -92,6 +97,8 @@ void Init(void)
     level_1_map = LoadTexture("assets/level_1.png");
     red_blob = LoadTexture("assets/red_blob.png");
     portal_sprite = LoadTexture("assets/portal.png");
+    chicken_sprite = LoadTexture("assets/chicken.png");
+    flying_chicken_sprite = LoadTexture("assets/flying_chicken.png");
 
 
 
@@ -126,12 +133,16 @@ void Init(void)
     portal_handler.PopulatePortals();
     
     being_instance.PopulateBeings(points_on_map);
+    chicken_instance.PopulateChickens(points_on_map);
 
     for (auto& being: being_instance.beings)
     {
         being.sprite = red_blob;
     }
-    
+    for (auto& chicken: chicken_instance.chickens)
+    {
+        chicken.sprite = chicken_sprite;
+    }
 
     temp_landing = Vector2Zero();
 
@@ -141,7 +152,13 @@ void Init(void)
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    // ---------------------------------------------------------------Move everyone 
+
+    for (auto& chicken : chicken_instance.chickens)
+    {
+        chicken.MoveChickens(points_on_map,chicken.landing_point);
+    }
+
+    // ---------------------------------------------------------------Move everyone in beings
     for (auto& being : being_instance.beings)
     {
         UserInput(being);
@@ -198,13 +215,14 @@ void Draw(void)
     BeginMode2D(camera);
         DrawStars(stars,starCount);
         DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
-        for (auto& point : points_on_map)
-        {
-            DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
-        }
-        portal_handler.DrawLandingPoints();
+        // for (auto& point : points_on_map)
+        // {
+        //     DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
+        // }
+        // portal_handler.DrawLandingPoints();
         portal_handler.DrawPortals();
         being_instance.DrawBeing();
+        chicken_instance.DrawChickens();
 
         if (map_recs)
         {

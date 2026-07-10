@@ -130,7 +130,7 @@ void Being::DrawBeing()
 
         DrawTexturePro(being.sprite,src,dest,{0,0},0,being.color);
         
-        DrawRectangleLinesEx(being.rep,1,WHITE);
+       
     }
 
 }
