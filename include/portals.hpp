@@ -9,7 +9,12 @@ struct Portal
 {
     Vector2 pos;
     Rectangle rep;
-    Vector2 landing_point;
+    Vector2 portal_landing_point;
+
+    int land_point;
+    int next_forward_point;
+    int next_backward_point;
+
     Texture2D sprite;
     bool active; 
 };

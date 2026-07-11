@@ -26,6 +26,9 @@ static Camera2D camera;
 map<int, Vector2> points_on_map;
 vector<Being*> beings_list;
 Color portal_color;
+float timer;
+float portal_color_timer;
+int portal_color_selector;
 
 Being being_instance;
 Chicken chicken_instance;
@@ -160,11 +163,16 @@ void Init(void)
 
     InitStars(stars,starCount);
 
+    timer = 180;
+    portal_color_timer = 1.5;
+    portal_color_selector = 0;
+
 }
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-
+    timer -= GetFrameTime();
+    portal_color_timer -= GetFrameTime();
     for (auto& chicken : chicken_instance.chickens)
     {
         chicken.MoveChickens(points_on_map,chicken.landing_point);
@@ -174,7 +182,7 @@ void Update(void)
     for (auto& being : being_instance.beings)
     {
         UserInput(being);
-        being.MoveBeing(points_on_map, being.landing_point);
+        being.MoveBeing(points_on_map, portal_handler.portals);
         
         being.can_jump = false;
 
@@ -185,7 +193,7 @@ void Update(void)
             {
                 
                 being.can_jump = true;
-                being.landing_point = portals.second.landing_point;
+                being.being_landing_point = portals.first;
                 
                 portals.second.active = being.jumping;
 
@@ -266,6 +274,9 @@ void Draw(void)
             DrawMapRecs();
         }
         DrawExitPortals();
+        string timer_s = to_string(timer);
+        cout << "timer " << timer_s << endl;
+        DrawText(timer_s.c_str(),1*16,23*16,16,RED);
         
     EndMode2D();
 
@@ -292,7 +303,22 @@ void UpdateDrawFrame(void)
 
 void DrawExitPortals()
 {
+    static const Color temp_color[3] =
+    {
+        {207, 158, 255, 255}, // ;light purple 3
+        {158, 255, 158, 255}, // light green 4
+        {255, 207, 158, 255} // light orange 5
+    };
 
+    if (portal_color_timer <=0)
+    {
+        portal_color_timer = 1.5;
+        portal_color_selector++;
+        if (portal_color_selector > 2)
+        {
+            portal_color_selector = 0;
+        }
+    }
     // DrawTextureEx(being.sprite,Vector2{being.rep.x,being.rep.y},0,1,being.color);
     // DrawRectangleRec(being.rep,being.color);
 
@@ -332,9 +358,24 @@ void DrawExitPortals()
         (float)frameWidth , // Width of the drawn framed)
         (float)frameHeight// Height of the drawn frame (scaled)
     };
+    Rectangle dest3 = dest2;
+    Rectangle dest4 = dest2;
+    Rectangle dest5 = dest2;
+    Rectangle dest6 = dest2;
+    dest3.x -=16;
+    dest4.x +=32;
+    dest4.x -=16;
+    dest5.y -= 12;
+    dest5.x -= 16;
+    dest6.x += 16;
+    dest6.y -= 12;
 
-    DrawTexturePro(exit_portals,src,dest,{0,0},0, portal_color);
-    DrawTexturePro(exit_portals,src2,dest2,{0,0},0, portal_color);
+    DrawTexturePro(exit_portals,src,dest,{0,0},0, temp_color[portal_color_selector]);
+    DrawTexturePro(exit_portals,src2,dest2,{0,0},0, temp_color[portal_color_selector]);
+    DrawTexturePro(exit_portals,src2,dest3,{0,0},0, temp_color[portal_color_selector]);
+    DrawTexturePro(exit_portals,src2,dest4,{0,0},0, temp_color[portal_color_selector]);
+    DrawTexturePro(exit_portals,src2,dest5,{0,0},0, temp_color[portal_color_selector]);
+    DrawTexturePro(exit_portals,src2,dest6,{0,0},0, temp_color[portal_color_selector]);
     
        
     

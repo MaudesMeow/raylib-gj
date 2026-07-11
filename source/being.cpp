@@ -1,4 +1,5 @@
 #include "being.hpp"
+#include "portals.hpp"
 
 static const Color colors[7] = {
     {255, 127, 127, 255}, // light red 0
@@ -20,111 +21,93 @@ void Being::PopulateBeings(map<int, Vector2> &points_on_map)
     beings.push_back(Being{points_on_map[9], true,9,colors[1]});
 }
 
-void Being::MoveBeing(map<int, Vector2>& points_on_map, Vector2 landing_point)
+void Being::MoveBeing(map<int, Vector2>& points_on_map, map<int, Portal>& portals)
 {
     if (!jumping)
     {
-        Vector2 target = points_on_map[target_point];
+        Vector2 target = points_on_map.at(target_point);
 
-        MoveOrthogonal(pos,target, GetFrameTime() * speed,direction);
+        MoveOrthogonal(pos, target, GetFrameTime() * speed, direction);
 
         if (Vector2Distance(pos, target) < 0.01f)
         {
-            // We reached the target
             previous_point = location_point;
             location_point = target_point;
 
-            if (location_point == 13 && is_merged)
+            // Special merge behaviour
+            if (location_point == 13)
             {
-                
-                is_active = false;
-                
-            }
-            else if(location_point == 13 && !is_merged)
-            {
-                target_point = 10;
-            }
-
-
-            // Pick the next target
-            if (forward)
-            {
-                if (is_merged && location_point == 9)
+                if (is_merged)
                 {
-                    target_point = 13;
+                    is_active = false;
                 }
                 else
                 {
-                    target_point++;
-
-                    if (target_point > 12)
-                        target_point = 1;
+                    target_point = 10;
                 }
             }
             else
             {
-                if (is_merged && location_point == 10)
+                if (forward)
                 {
-                    target_point = 13;
-                }
-                target_point--;
+                    if (is_merged && location_point == 9)
+                    {
+                        target_point = 13;
+                    }
+                    else
+                    {
+                        target_point++;
 
-                if (target_point < 1)
-                    target_point = 12;
+                        if (target_point > 12)
+                            target_point = 1;
+                    }
+                }
+                else
+                {
+                    if (is_merged && location_point == 10)
+                    {
+                        target_point = 13;
+                    }
+                    else
+                    {
+                        target_point--;
+
+                        if (target_point < 1)
+                            target_point = 12;
+                    }
+                }
             }
         }
     }
     else
     {
-        // Moving after jump
-        pos = Vector2MoveTowards(pos, landing_point, GetFrameTime() * speed);
+        const Portal& portal = portals.at(being_landing_point);
 
-        if (Vector2Distance(pos, landing_point) < 0.01f)
+        // Move toward landing location
+        pos = Vector2MoveTowards(
+            pos,
+            portal.portal_landing_point,
+            GetFrameTime() * speed);
+
+        // Have we landed?
+        if (Vector2Distance(pos, portal.portal_landing_point) < 0.01f)
         {
-            // Find the closest point on the map
-            float distance = 1000.f;
-            int closest_point = location_point;
-
-            for (int i = 1; i < points_on_map.size(); i++)
-            {
-                float current_distance = Vector2Distance(pos, points_on_map[i]);
-
-                if (current_distance < distance)
-                {
-                    distance = current_distance;
-                    closest_point = i;
-                }
-            }
-
             previous_point = location_point;
-            location_point = closest_point;
+            location_point = portal.land_point;
 
-            // Pick the next target based on direction
             if (forward)
-            {
-                target_point = location_point + 1;
-
-                if (target_point > 12)
-                    target_point = 1;
-            }
+                target_point = portal.next_forward_point;
             else
-            {
-                target_point = location_point - 1;
-
-                if (target_point < 1)
-                    target_point = 12;
-            }
-
-
+                target_point = portal.next_backward_point;
 
             jumping = false;
             can_jump = true;
         }
     }
 
-
     rep.x = (pos.x - 0.3f) * 16;
     rep.y = (pos.y - 0.5f) * 16;
+
     sprite_pos.x = (pos.x - 0.5f) * 16;
     sprite_pos.y = (pos.y - 0.75f) * 16;
 }
@@ -228,7 +211,7 @@ void MergeTwoBeings(vector<Being> &beings, int i, int j)
     newBeing.jumping = false;
     newBeing.can_jump = false;
     newBeing.can_jump = false;
-    newBeing.landing_point = Vector2Zero();
+    newBeing.being_landing_point = 0;
     newBeing.is_merged = true;
     newBeing.sprite = red_blob;
     newBeing.rep = Rectangle{b1.pos.x*16,b1.pos.y*16,9,10};
@@ -307,7 +290,7 @@ void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int m
     newBeing.jumping = false;
     newBeing.can_jump = false;
 
-    newBeing.landing_point = Vector2Zero();
+    newBeing.being_landing_point = 0;
     newBeing.is_merged = false;
     newBeing.sprite = red_blob;
     newBeing.rep = Rectangle{newBeing.pos.x*16,newBeing.pos.y*16,9,10};
@@ -348,7 +331,7 @@ void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int m
     newBeing2.speed = 3.5;
     newBeing2.jumping = false;
     newBeing2.can_jump = false;
-    newBeing2.landing_point = Vector2Zero();
+    newBeing2.being_landing_point = 0;
     newBeing2.is_merged = false;
     newBeing2.is_active = true;
 
