@@ -20,6 +20,15 @@ extern Texture2D exit_portals;
 
 extern Color portal_color;
 
+enum GAME_STATE
+{
+    PLAY,
+    MENU,
+    GAME_WON,
+    GAME_LOST
+};
+
+extern GAME_STATE game_state;
 
 
 #endif

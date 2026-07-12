@@ -93,13 +93,23 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, map<int, Portal>& portal
         if (Vector2Distance(pos, portal.portal_landing_point) < 0.01f)
         {
             previous_point = location_point;
-            location_point = portal.land_point;
+
 
             if (forward)
+            {
                 target_point = portal.next_forward_point;
-            else
-                target_point = portal.next_backward_point;
+                location_point = portal.next_backward_point;
+            }
 
+            else
+            {
+                target_point = portal.next_backward_point;
+                location_point = portal.next_forward_point;
+            }
+
+
+            // cout << location_point << " is the location point " << endl;
+            // cout << target_point << " is the target point " << endl;
             jumping = false;
             can_jump = true;
         }
@@ -206,7 +216,7 @@ void MergeTwoBeings(vector<Being> &beings, int i, int j)
     newBeing.pos.y = (b1.pos.y + b2.pos.y) / 2;
 
     
-    newBeing.target_point = b1.target_point;
+    
     newBeing.speed = 3.5;
     newBeing.jumping = false;
     newBeing.can_jump = false;
@@ -230,33 +240,37 @@ void MergeTwoBeings(vector<Being> &beings, int i, int j)
     portal_color = temp_color;
 }
 
-void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int merged_index)
+void SplitTwoBeings(map<int, Vector2> &points_on_map,
+                    vector<Being> &beings,
+                    int merged_index)
 {
-
     Being merged_being = beings[merged_index];
 
     Color temp_color_1 = RED;
     Color temp_color_2 = YELLOW;
 
-    if (ColorIsEqual(merged_being.color,colors[5]))
+    if (ColorIsEqual(merged_being.color, colors[5]))
     {
         temp_color_1 = colors[0];
         temp_color_2 = colors[1];
-    } 
-    else if (ColorIsEqual(merged_being.color,colors[4]))
+    }
+    else if (ColorIsEqual(merged_being.color, colors[4]))
     {
         temp_color_1 = colors[2];
         temp_color_2 = colors[1];
-    } 
-    else if (ColorIsEqual(merged_being.color,colors[3]))
+    }
+    else if (ColorIsEqual(merged_being.color, colors[3]))
     {
         temp_color_1 = colors[0];
         temp_color_2 = colors[2];
-    } 
-
-
+    }
 
     beings[merged_index].is_active = false;
+
+    // --------------------
+    // First being
+    // --------------------
+
     Being newBeing =
     {
         points_on_map[merged_being.location_point],
@@ -265,38 +279,16 @@ void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int m
         temp_color_1
     };
 
-
-    if (merged_being.target_point == 13 && merged_being.forward)
-    {
-        newBeing.target_point = 10;
-    }
-    else if (merged_being.target_point == 13 && !merged_being.forward)
-    {
-        newBeing.target_point = 9;
-    }
-    else
-    {
-        newBeing.target_point = merged_being.target_point + (merged_being.forward ? 1 : -1);
-
-        if (newBeing.target_point > 12)
-            newBeing.target_point = 1;
-
-        if (newBeing.target_point < 1)
-            newBeing.target_point = 12;
-    }
-    
-    
-    newBeing.speed = 3.5;
-    newBeing.jumping = false;
-    newBeing.can_jump = false;
-
-    newBeing.being_landing_point = 0;
-    newBeing.is_merged = false;
+    newBeing.pos = merged_being.pos;              // Preserve exact position
+    newBeing.previous_point = merged_being.previous_point;
+    newBeing.target_point = merged_being.target_point;
     newBeing.sprite = red_blob;
-    newBeing.rep = Rectangle{newBeing.pos.x*16,newBeing.pos.y*16,9,10};
-    newBeing.sprite_pos.x = newBeing.rep.x;
-    newBeing.sprite_pos.y = newBeing.rep.y;   
-    
+    newBeing.rep = Rectangle{newBeing.pos.x * 16, newBeing.pos.y * 16, 9, 10};
+    newBeing.sprite_pos = {newBeing.rep.x, newBeing.rep.y};
+
+    // --------------------
+    // Second being
+    // --------------------
 
     Being newBeing2 =
     {
@@ -308,18 +300,14 @@ void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int m
 
     newBeing2.previous_point = merged_being.location_point;
 
-    // Set the next destination after appearing at the original target point
-    if (merged_being.target_point == 13 && merged_being.forward)
+    if (merged_being.target_point == 13)
     {
-        newBeing2.target_point = 10;
-    }
-    else if (merged_being.target_point == 13 && !merged_being.forward)
-    {
-        newBeing2.target_point = 9;
+        newBeing2.target_point = merged_being.forward ? 10 : 9;
     }
     else
     {
-        newBeing2.target_point = merged_being.target_point + (merged_being.forward ? 1 : -1);
+        newBeing2.target_point =
+            merged_being.target_point + (merged_being.forward ? 1 : -1);
 
         if (newBeing2.target_point > 12)
             newBeing2.target_point = 1;
@@ -328,29 +316,18 @@ void SplitTwoBeings(map<int, Vector2> &points_on_map,vector<Being> &beings,int m
             newBeing2.target_point = 12;
     }
 
-    newBeing2.speed = 3.5;
-    newBeing2.jumping = false;
-    newBeing2.can_jump = false;
-    newBeing2.being_landing_point = 0;
-    newBeing2.is_merged = false;
-    newBeing2.is_active = true;
-
     newBeing2.sprite = red_blob;
     newBeing2.rep = Rectangle{newBeing2.pos.x * 16, newBeing2.pos.y * 16, 9, 10};
-    newBeing2.sprite_pos.x = newBeing2.rep.x;
-    newBeing2.sprite_pos.y = newBeing2.rep.y;
-
+    newBeing2.sprite_pos = {newBeing2.rep.x, newBeing2.rep.y};
 
     beings.push_back(newBeing);
     beings.push_back(newBeing2);
-
-
 }
 
 
 void MoveOrthogonal(Vector2 &pos,const Vector2 &target, float step, int &direction)
 {
-    if (fabsf(pos.x - target.x) > 0.01f)
+    if (fabsf(pos.x - target.x) > 0.001f)
     {
         if (pos.x < target.x)
         {
@@ -367,7 +344,7 @@ void MoveOrthogonal(Vector2 &pos,const Vector2 &target, float step, int &directi
         
         
     }
-    else if (fabsf(pos.y - target.y) > 0.01f)
+    else if (fabsf(pos.y - target.y) > 0.001f)
     {
         if (pos.y < target.y)
         {

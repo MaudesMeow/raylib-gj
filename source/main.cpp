@@ -4,6 +4,7 @@
 #include "portals.hpp"
 #include "stars.hpp"
 #include "chicken.hpp"
+#include "GameState.hpp"
 
 #define BASE_WIDTH 720
 #define BASE_HEIGHT 720
@@ -48,7 +49,15 @@ Texture2D exit_portals;
 const int starCount =  1500;
 Stars stars[starCount];
 
+enum GAME_STATE game_state;
+bool load_game = false;
+bool clear_game = false;
 
+
+int timer_int;
+string timer_s;
+
+Music music;
 
 
 
@@ -60,6 +69,11 @@ void Unload(void);
 void UpdateDrawFrame(void);
 
 void DrawExitPortals();
+void InitGamePlayState();
+void LoadGameState();
+void ClearGameState();
+
+
 
 void DrawMapRecs()
 {
@@ -98,8 +112,10 @@ void Init(void)
     // SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
     InitWindow(BASE_WIDTH, BASE_HEIGHT, PROJECT_NAME);
+    InitAudioDevice();
 
     SetWindowMinSize(BASE_WIDTH, BASE_HEIGHT);
+
     SetTargetFPS(60);
 
     // ------------------------------------------------------- Load Textures
@@ -109,6 +125,8 @@ void Init(void)
     chicken_sprite = LoadTexture("assets/chicken.png");
     flying_chicken_sprite = LoadTexture("assets/flying_chicken.png");
     exit_portals = LoadTexture("assets/portal_exit.png");
+    music = LoadMusicStream("assets/raylib-gj.wav");
+    PlayMusicStream(music);
 
 
 
@@ -121,135 +139,134 @@ void Init(void)
     camera.offset = (Vector2){ 0,0 };
     camera.rotation = 0.0f;
     camera.zoom = 1.8;
-    points_on_map = 
+
+  
+    float volume = 0.8f;            // Default audio volume [0.0f..1.0f]
+    SetMusicVolume(music, volume);
+
+    game_state = MENU;
+
+    switch (game_state)
     {
-        {1,{2,6}},
-        {2,{19,6}},
-        {3,{19,10}},
-        {4,{2,10}},
-        {5,{2,14}},
-        {6,{19,14}},
-        {7,{19,18}},
-        {8,{2,18}},
-        {9,{2,22}},
-        {10,{22,22}},
-        {11,{22,2}},
-        {12,{2,2}},
-        {13,{11,24}}
+    case PLAY:
+        LoadGameState();
+        break;
 
-
-    };
-
-   
-    portal_handler.PopulatePortals();
+    case MENU:
+        break;
     
-    being_instance.PopulateBeings(points_on_map);
-    for (int i = 0; i < 3; i++)
-    {
-        chicken_instance.PopulateChickens(points_on_map);
-    }
-    
-
-    for (auto& being: being_instance.beings)
-    {
-        being.sprite = red_blob;
-    }
-    for (auto& chicken: chicken_instance.chickens)
-    {
-        chicken.sprite = chicken_sprite;
+    default:
+        break;
     }
 
-    temp_landing = Vector2Zero();
-
-    InitStars(stars,starCount);
-
-    timer = 180;
-    portal_color_timer = 1.5;
-    portal_color_selector = 0;
 
 }
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    timer -= GetFrameTime();
-    portal_color_timer -= GetFrameTime();
-    for (auto& chicken : chicken_instance.chickens)
+    UpdateMusicStream(music);
+    
+    switch (game_state)
     {
-        chicken.MoveChickens(points_on_map,chicken.landing_point);
-    }
-    chicken_instance.PopulateChickens(points_on_map);
-    // ---------------------------------------------------------------Move everyone in beings
-    for (auto& being : being_instance.beings)
-    {
-        UserInput(being);
-        being.MoveBeing(points_on_map, portal_handler.portals);
-        
-        being.can_jump = false;
-
-        for (auto& portals : portal_handler.portals)
-        {
-            
-            if (CheckCollisionRecs(portals.second.rep, being.rep))
+        case PLAY:
+            if (load_game)
             {
-                
-                being.can_jump = true;
-                being.being_landing_point = portals.first;
-                
-                portals.second.active = being.jumping;
-
+                LoadGameState();
             }
-
-        }
-
-        for (int i = 0; i < being_instance.beings.size(); i++)
-        {
-            Being& being = being_instance.beings[i];
-
+            timer -= GetFrameTime();
+            portal_color_timer -= GetFrameTime();
             for (auto& chicken : chicken_instance.chickens)
             {
-                if (CheckCollisionRecs(chicken.rep, being.rep) &&
-                    (!chicken.flying_in && !chicken.flying_out) &&
-                    being.is_merged &&
-                    being.is_active &&
-                    !being.jumping)
-                {
-                    SplitTwoBeings(points_on_map, being_instance.beings, i);
-                    break;
-                }
+                chicken.MoveChickens(points_on_map,chicken.landing_point);
             }
-        }
-    }
-    DeleteBeing(being_instance.beings);
-
-
-    // ---------------------------------------------------------------- check collision
-    for (int i = 0; i < being_instance.beings.size(); i++)
-    {
-        for (int j = i + 1; j < being_instance.beings.size(); j++)
-        {
-            if (CheckCollisionRecs(being_instance.beings[i].rep,being_instance.beings[j].rep))
+            chicken_instance.PopulateChickens(points_on_map);
+            // ---------------------------------------------------------------Move everyone in beings
+            for (auto& being : being_instance.beings)
             {
-                if ((!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
-                    && !ColorIsEqual(being_instance.beings[i].color,being_instance.beings[j].color)
-                    && (!being_instance.beings[i].jumping && !being_instance.beings[j].jumping))
-                {
-                    MergeTwoBeings(being_instance.beings, i, j);
-                    
-                }
+                UserInput(being,clear_game);
+                being.MoveBeing(points_on_map, portal_handler.portals);
                 
-                return; 
+                being.can_jump = false;
+
+                for (auto& portals : portal_handler.portals)
+                {
+                    
+                    if (CheckCollisionRecs(portals.second.rep, being.rep))
+                    {
+                        
+                        being.can_jump = true;
+                        being.being_landing_point = portals.first;
+                        
+                        portals.second.active = being.jumping;
+
+                    }
+
+                }
+
+                for (int i = 0; i < being_instance.beings.size(); i++)
+                {
+                    Being& being = being_instance.beings[i];
+
+                    for (auto& chicken : chicken_instance.chickens)
+                    {
+                        if (CheckCollisionRecs(chicken.rep, being.rep) &&
+                            (!chicken.flying_in && !chicken.flying_out) &&
+                            being.is_merged &&
+                            being.is_active &&
+                            !being.jumping)
+                        {
+                            SplitTwoBeings(points_on_map, being_instance.beings, i);
+                            break;
+                        }
+                    }
+                }
+            }
+            DeleteBeing(being_instance.beings);
+
+
+            // ---------------------------------------------------------------- check collision
+            for (int i = 0; i < being_instance.beings.size(); i++)
+            {
+                for (int j = i + 1; j < being_instance.beings.size(); j++)
+                {
+                    if (CheckCollisionRecs(being_instance.beings[i].rep,being_instance.beings[j].rep))
+                    {
+                        if ((!being_instance.beings[i].is_merged && !being_instance.beings[j].is_merged)
+                            && !ColorIsEqual(being_instance.beings[i].color,being_instance.beings[j].color)
+                            && (!being_instance.beings[i].jumping && !being_instance.beings[j].jumping))
+                        {
+                            MergeTwoBeings(being_instance.beings, i, j);
+                            
+                        }
+                        
+                        return; 
+                    }
+
+
+                }
             }
 
 
-        }
+            // if (IsKeyReleased(KEY_A))
+            // {
+            //     map_recs = !map_recs;
+            // }
+            UpdateStars(stars,starCount);
+        break;
+
+        case (MENU):
+            if (clear_game)
+            {
+                ClearGameState();
+            }            
+            UpdateMainMenu();
+            load_game = true;
+            break;
+
+        default:
+            break;
     }
 
-
-    if (IsKeyReleased(KEY_A))
-    {
-        map_recs = !map_recs;
-    }
-    UpdateStars(stars,starCount);
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
 void Draw(void)
@@ -258,25 +275,41 @@ void Draw(void)
     
     ClearBackground(Color{28,27,51});
     BeginMode2D(camera);
-        DrawStars(stars,starCount);
-        DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
-        // for (auto& point : points_on_map)
-        // {
-        //     DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
-        // }
-        // portal_handler.DrawLandingPoints();
-        portal_handler.DrawPortals();
-        being_instance.DrawBeing();
-        chicken_instance.DrawChickens();
 
-        if (map_recs)
-        {
-            DrawMapRecs();
-        }
-        DrawExitPortals();
-        string timer_s = to_string(timer);
-        cout << "timer " << timer_s << endl;
-        DrawText(timer_s.c_str(),1*16,23*16,16,RED);
+    switch (game_state)
+    {
+        case PLAY:
+            DrawStars(stars,starCount);
+            DrawTextureEx(level_1_map,Vector2{0,0},0,1,WHITE);
+            // for (auto& point : points_on_map)
+            // {
+            //     DrawCircle(point.second.x*16,point.second.y*(16),3,RED);
+            // }
+            // portal_handler.DrawLandingPoints();
+            portal_handler.DrawPortals();
+            being_instance.DrawBeing();
+            chicken_instance.DrawChickens();
+
+            if (map_recs)
+            {
+                DrawMapRecs();
+            }
+            DrawExitPortals();
+            timer_int = int(timer);
+            timer_s = to_string(timer_int);
+            
+            DrawText(timer_s.c_str(),2*16,23.5*16,16,WHITE);
+            break;
+        
+        case MENU:
+            DrawStars(stars,starCount);
+            DrawMenu();
+            break;
+        
+        default:
+            break;
+    }
+
         
     EndMode2D();
 
@@ -288,6 +321,8 @@ void Unload(void)
 #ifdef PLATFORM_WEB
     emscripten_exit_with_live_runtime();
 #endif
+    UnloadMusicStream(music);
+    CloseAudioDevice();
     CloseWindow();
 }
 // ---------------------------------------------------------------------------UPDATE AND DRAW FUNCTION
@@ -379,5 +414,73 @@ void DrawExitPortals()
     
        
     
+
+}
+
+void LoadGameState()
+{
+    ClearGameState();
+    points_on_map = 
+    {
+        {1,{2,6}},
+        {2,{19,6}},
+        {3,{19,10}},
+        {4,{2,10}},
+        {5,{2,14}},
+        {6,{19,14}},
+        {7,{19,18}},
+        {8,{2,18}},
+        {9,{2,22}},
+        {10,{22,22}},
+        {11,{22,2}},
+        {12,{2,2}},
+        {13,{11,24}}
+
+
+    };
+
+   
+    portal_handler.PopulatePortals();
+    
+    being_instance.PopulateBeings(points_on_map);
+    for (int i = 0; i < 3; i++)
+    {
+        chicken_instance.PopulateChickens(points_on_map);
+    }
+    
+
+    for (auto& being: being_instance.beings)
+    {
+        being.sprite = red_blob;
+    }
+    for (auto& chicken: chicken_instance.chickens)
+    {
+        chicken.sprite = chicken_sprite;
+    }
+
+    temp_landing = Vector2Zero();
+
+    InitStars(stars,starCount);
+
+    timer = 180;
+    portal_color_timer = 1.5;
+    portal_color_selector = 0;
+
+    load_game = false;
+}
+
+void ClearGameState()
+{
+    points_on_map.clear();
+
+    being_instance.beings.clear();
+    chicken_instance.chickens.clear();
+    portal_handler.portals.clear();
+
+    clear_game = false;
+}
+
+void LoadMenuState()
+{
 
 }

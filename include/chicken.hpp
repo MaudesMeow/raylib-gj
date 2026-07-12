@@ -43,7 +43,7 @@ class Chicken
         previous_point = location_point;
         target_point = location_point+1;
         rep = {pos.x,pos.y,9,10};
-        speed = 3.8;
+        speed = 4.6;
 
         landing_point = Vector2Zero();
         active = true;

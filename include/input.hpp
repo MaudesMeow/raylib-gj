@@ -8,7 +8,7 @@ class Being;
 
 
 
-void UserInput(Being &being_instance);
+void UserInput(Being &being_instance, bool &clear_game_state);
 
 
 #endif 

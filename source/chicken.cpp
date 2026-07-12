@@ -108,6 +108,7 @@ void Chicken::MoveChickens(map<int, Vector2> &points_on_map, Vector2 landing_poi
         {
             Vector2 target = points_on_map[location_point];
             pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
+            speed = 3.8;
             if (Vector2Distance(target,pos) < 0.01f)
             {
                 flying_in = false;
@@ -117,6 +118,7 @@ void Chicken::MoveChickens(map<int, Vector2> &points_on_map, Vector2 landing_poi
         {
             Vector2 target = points_on_map[target_point];
             pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
+            speed = 4.6;
         if (Vector2Distance(target,pos) < 0.01f)
             {
                 flying_out = true;
@@ -126,6 +128,7 @@ void Chicken::MoveChickens(map<int, Vector2> &points_on_map, Vector2 landing_poi
         {
             Vector2 target = Vector2{points_on_map[target_point].x+end_x_offset,points_on_map[target_point].y+end_y_offset};
             pos = Vector2MoveTowards(pos,target,GetFrameTime() * speed);
+            speed = 3.8;
             if (Vector2Distance(target,pos) < 0.01f)
             {
                 active = false;
