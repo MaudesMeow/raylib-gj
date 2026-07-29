@@ -1,8 +1,8 @@
 # i.e. https://itch-user.itch.io/itch-page
 ITCH_USER = the-bert
-ITCH_PAGE = tbd
+ITCH_PAGE = bloorp
 
-PROJECT_NAME 	= "Game"
+PROJECT_NAME 	= "bloorp"
 PROJECT_VERSION = "0.1"
 BASE_WIDTH 	=  720
 BASE_HEIGHT =  720

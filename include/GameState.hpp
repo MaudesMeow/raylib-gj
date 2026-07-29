@@ -14,3 +14,7 @@ void ClearGame();
 void GameOver();
 
 void DrawMenu();
+
+void DrawWinGame();
+
+void DrawLostGame();

@@ -8,7 +8,7 @@
 
 #define BASE_WIDTH 720
 #define BASE_HEIGHT 720
-#define PROJECT_NAME "Game"
+#define PROJECT_NAME "bloorp"
 
 #ifdef PLATFORM_WEB
     #include <emscripten/emscripten.h>
@@ -30,7 +30,7 @@ Color portal_color;
 float timer;
 float portal_color_timer;
 int portal_color_selector;
-
+int end_counter;
 Being being_instance;
 Chicken chicken_instance;
 
@@ -59,7 +59,11 @@ string timer_s;
 
 Music music;
 
+Font global_font;
 
+Shader basic_shader;
+
+RenderTexture2D target;
 
 // -------------------------------------------------------functions 
 void Init(void);
@@ -126,8 +130,22 @@ void Init(void)
     flying_chicken_sprite = LoadTexture("assets/flying_chicken.png");
     exit_portals = LoadTexture("assets/portal_exit.png");
     music = LoadMusicStream("assets/raylib-gj.wav");
+    global_font = LoadFont("assets/QuinqueFive.ttf");
+
+    basic_shader = LoadShader(0, "assets/Basic.fs");
+    target = LoadRenderTexture(BASE_WIDTH,BASE_HEIGHT);
+
     PlayMusicStream(music);
 
+    int resolutionLoc = GetShaderLocation(basic_shader, "resolution");
+
+    float resolution[2] = { (float)BASE_WIDTH, (float)BASE_HEIGHT };
+    SetShaderValue(
+        basic_shader,
+        resolutionLoc,
+        resolution,
+        SHADER_UNIFORM_VEC2
+    );
 
 
     // -------------------------------------------------------- Set Variables
@@ -144,7 +162,10 @@ void Init(void)
     float volume = 0.8f;            // Default audio volume [0.0f..1.0f]
     SetMusicVolume(music, volume);
 
-    game_state = MENU;
+    InitStars(stars,starCount);
+
+    game_state = PLAY;
+    end_counter = 0;
 
     switch (game_state)
     {
@@ -164,7 +185,7 @@ void Init(void)
 // ---------------------------------------------------------------------------UPDATE FUNCTION
 void Update(void)
 {
-    UpdateMusicStream(music);
+    // UpdateMusicStream(music);
     
     switch (game_state)
     {
@@ -174,6 +195,10 @@ void Update(void)
                 LoadGameState();
             }
             timer -= GetFrameTime();
+            if (timer <= 1)
+            {
+                game_state = GAME_LOST;
+            }
             portal_color_timer -= GetFrameTime();
             for (auto& chicken : chicken_instance.chickens)
             {
@@ -251,7 +276,7 @@ void Update(void)
             // {
             //     map_recs = !map_recs;
             // }
-            UpdateStars(stars,starCount);
+            
         break;
 
         case (MENU):
@@ -263,9 +288,18 @@ void Update(void)
             load_game = true;
             break;
 
+        case (GAME_WON):
+            UpdateMainMenu();
+            break;
+        
+        case (GAME_LOST):
+            UpdateMainMenu();
+            break;
+
         default:
             break;
     }
+    UpdateStars(stars,starCount);
 
 }
 // ---------------------------------------------------------------------------Draw FUNCTION
@@ -275,7 +309,7 @@ void Draw(void)
     
     ClearBackground(Color{28,27,51});
     BeginMode2D(camera);
-
+    DrawStars(stars,starCount);
     switch (game_state)
     {
         case PLAY:
@@ -305,6 +339,16 @@ void Draw(void)
             DrawStars(stars,starCount);
             DrawMenu();
             break;
+
+        case GAME_WON:
+            DrawStars(stars,starCount);
+            DrawWinGame();
+            break;
+
+        case GAME_LOST:
+            DrawStars(stars,starCount);
+            DrawLostGame();
+            break;
         
         default:
             break;
@@ -326,12 +370,39 @@ void Unload(void)
     CloseWindow();
 }
 // ---------------------------------------------------------------------------UPDATE AND DRAW FUNCTION
-void UpdateDrawFrame(void)
+void UpdateDrawFrame()
 {
+
     Update();
 
+
+    BeginTextureMode(target);
+        ClearBackground(BLACK);
+
+        Draw();      
+
+    EndTextureMode();
+
+
     BeginDrawing();
-        Draw();
+        ClearBackground(BLACK);
+
+        BeginShaderMode(basic_shader);
+
+            DrawTextureRec(
+                target.texture,
+                Rectangle{
+                    0,
+                    0,
+                    (float)target.texture.width,
+                    -(float)target.texture.height   // Flip vertically
+                },
+                Vector2{0, 0},
+                WHITE
+            );
+
+        EndShaderMode();
+
     EndDrawing();
 }
 
@@ -466,6 +537,8 @@ void LoadGameState()
     portal_color_timer = 1.5;
     portal_color_selector = 0;
 
+    end_counter = 0;
+
     load_game = false;
 }
 
@@ -476,6 +549,7 @@ void ClearGameState()
     being_instance.beings.clear();
     chicken_instance.chickens.clear();
     portal_handler.portals.clear();
+    
 
     clear_game = false;
 }

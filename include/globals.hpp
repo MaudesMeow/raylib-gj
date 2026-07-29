@@ -17,8 +17,12 @@ extern Texture2D portal_sprite;
 extern Texture2D chicken_sprite;
 extern Texture2D flying_chicken_sprite;
 extern Texture2D exit_portals;
+extern Font global_font;
 
 extern Color portal_color;
+
+extern float timer;
+extern int end_counter;
 
 enum GAME_STATE
 {

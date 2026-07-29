@@ -48,9 +48,9 @@ void Portal_Handler::DrawPortals()
             // DrawCircleLinesV(Vector2{point.second.rep.x+16,point.second.rep.y+13},3,WHITE);
         }
         DrawRectangleLinesEx(point.second.rep,1,WHITE);
-        string temp_int = to_string(point.first);
-        DrawText(temp_int.c_str(),point.second.portal_landing_point.x*16,point.second.portal_landing_point.y*16,13,WHITE);
-        DrawCircleLines(point.second.portal_landing_point.x*16,point.second.portal_landing_point.y*16,3,GREEN);
+        // string temp_int = to_string(point.first);
+        // DrawText(temp_int.c_str(),point.second.portal_landing_point.x*16,point.second.portal_landing_point.y*16,13,WHITE);
+        // DrawCircleLines(point.second.portal_landing_point.x*16,point.second.portal_landing_point.y*16,3,GREEN);
 
     }
 }

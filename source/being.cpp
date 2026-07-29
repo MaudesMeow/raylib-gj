@@ -1,6 +1,9 @@
 #include "being.hpp"
 #include "portals.hpp"
 
+
+
+
 static const Color colors[7] = {
     {255, 127, 127, 255}, // light red 0
     {255, 255, 158, 255}, // light yellow 1
@@ -40,6 +43,13 @@ void Being::MoveBeing(map<int, Vector2>& points_on_map, map<int, Portal>& portal
                 if (is_merged)
                 {
                     is_active = false;
+                    end_counter++;
+                    
+                    if (end_counter == 3)
+                    {
+                        
+                        game_state = GAME_WON;
+                    }
                 }
                 else
                 {
@@ -162,9 +172,19 @@ void DeleteBeing(vector<Being> &beings)
 {
     
 
+
     for (int i = beings.size() - 1; i >= 0; i--)
     {
         
+        if (beings.size() ==1 && !beings[i].is_merged)
+        {
+            game_state = GAME_LOST;
+        }
+
+        if (beings.size() == 2 && ColorIsEqual(beings[i].color,beings[i-1].color))
+        {
+            game_state = GAME_LOST;
+        }
 
         if (!beings[i].is_active)
         {
